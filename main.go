@@ -9,7 +9,19 @@ import (
 	"os"
 )
 
+func CreateDir(path string) {
+	if err := os.MkdirAll(path, 0755); err != nil {
+		log.Printf("创建文件夹错误:%v\n", err)
+		return
+	}
+}
+
 func main() {
+	CreateDir("image")
+	CreateDir("image/raw_image")
+	CreateDir("image/today_image")
+	CreateDir("image/used_image")
+
 	is_raw_empty, err := utils.IsFilesEmpty("image/raw_image")
 
 	if err != nil {
@@ -36,11 +48,6 @@ func main() {
 	log.Println("检查完成，需要执行今天的壁纸寻找任务！")
 
 	log.Println("将之前的壁纸移动到已使用文件夹")
-
-	if err = os.MkdirAll("image/used_image", 0755); err != nil {
-		log.Printf("创建文件夹错误:%v\n", err)
-		return
-	}
 
 	utils.MoveAllFiles("image/today_image", "image/used_image")
 

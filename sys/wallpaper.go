@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"syscall"
+	"unsafe"
 
 	"golang.org/x/image/bmp"
 	"golang.org/x/sys/windows/registry"
@@ -18,13 +20,13 @@ func (wps WallpaperStyle) String() string {
 }
 
 const (
-	Fill    WallpaperStyle = iota // 填充
-	Fit                           // 适应
-	Stretch                       // 拉伸
-	Tile                          // 平铺
-	Center                        // 居中
-	Cross                         // 跨区
-
+	Fill                 WallpaperStyle = iota // 填充
+	Fit                                        // 适应
+	Stretch                                    // 拉伸
+	Tile                                       // 平铺
+	Center                                     // 居中
+	Cross                                      // 跨区
+	SPI_GETDESKWALLPAPER = 0x0073
 )
 
 var wallpaperStyles = map[WallpaperStyle]string{
@@ -155,4 +157,16 @@ func setScreenSaver(uiAction, uiParam uint32) {
 func getScreenSaver() bool {
 	_, _, err := regist.GetStringValue("SCRNSAVE.EXE")
 	return err == nil
+}
+
+func GetCurrentWallpaperPathFromAPI() (string, error) {
+	const MAX_PATH = 300
+	var buffer [MAX_PATH]uint16 // 使用 UTF-16 编码
+
+	ok := SystemParametersInfo(SPI_GETDESKWALLPAPER, MAX_PATH, unsafe.Pointer(&buffer), 0)
+	if !ok {
+		return "", errors.New("调用 SPI_GETDESKWALLPAPER 失败")
+	}
+
+	return syscall.UTF16ToString(buffer[:]), nil
 }

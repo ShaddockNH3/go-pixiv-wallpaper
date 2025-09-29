@@ -3,6 +3,7 @@ package sys
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,11 +12,15 @@ import (
 
 // GetCurrentWallpaper 读取当前桌面壁纸并保存到指定路径
 func GetCurrentWallpaper() (string, error) {
-	// 从注册表读取当前壁纸的路径
-	currentWallpaperPath, _, err := regist.GetStringValue("Wallpaper")
+	currentWallpaperPath, err := GetCurrentWallpaperPathFromAPI()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("无法从API获取当前壁紙路径: %v", err)
 	}
+	if currentWallpaperPath == "" {
+		return "", errors.New("从API获取到的壁纸路径为空, 可能没有设置壁纸")
+	}
+	log.Printf("通过API成功获取到当前壁纸路径: %s", currentWallpaperPath)
+
 
 	// 定义保存的目标文件夹
 	destDir := "image/raw_image"
@@ -27,12 +32,12 @@ func GetCurrentWallpaper() (string, error) {
 	// 打开源文件
 	srcFile, err := os.Open(currentWallpaperPath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("无法打开API提供的壁纸源文件 '%s': %v", currentWallpaperPath, err)
 	}
 	defer srcFile.Close()
 
-	// 创建目标文件
-	destPath := filepath.Join(destDir, filepath.Base(currentWallpaperPath))
+	// 创建目标文件 (使用一个固定的、有意义的名字)
+	destPath := filepath.Join(destDir, "backup_wallpaper"+filepath.Ext(currentWallpaperPath))
 	destFile, err := os.Create(destPath)
 	if err != nil {
 		return "", err

@@ -3,8 +3,10 @@ package main
 import (
 	"GopherPaws/catch"
 	"GopherPaws/config"
+	"GopherPaws/sys"
 	"GopherPaws/utils"
 	"log"
+	"os"
 )
 
 func main() {
@@ -16,7 +18,10 @@ func main() {
 
 	if is_raw_empty {
 		log.Printf("没有原始图片，将本地壁纸作为原始图片保存")
-		// 将本地壁纸作为原始图片保存
+		_, err := sys.GetCurrentWallpaper()
+		if err != nil {
+			log.Printf("备份壁纸失败: %v\n", err)
+		}
 	}
 
 	log.Println("开始执行每日检查...")
@@ -31,6 +36,11 @@ func main() {
 	log.Println("检查完成，需要执行今天的壁纸寻找任务！")
 
 	log.Println("将之前的壁纸移动到已使用文件夹")
+
+	if err = os.MkdirAll("image/used_image", 0755); err != nil {
+		log.Printf("创建文件夹错误:%v\n", err)
+		return
+	}
 
 	utils.MoveAllFiles("image/today_image", "image/used_image")
 
@@ -48,10 +58,18 @@ func main() {
 		log.Printf("判断今日图片为空的逻辑错误：%v", err)
 	}
 
+	var today_path string
+
 	if is_today_empty {
-		// 将壁纸替换为raw_image
+		today_path = "image/raw_image"
 	} else {
-		// 将壁纸替换为today_image
+		today_path = "image/today_image"
+	}
+
+	err = sys.SetTodayWallpaper(today_path)
+	if err != nil {
+		log.Printf("设置壁纸错误:%v\n", err)
+		return
 	}
 
 	log.Println("今日任务全部完成！")

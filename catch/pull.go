@@ -199,7 +199,7 @@ func RunWallpaperFinder(screenWidth int, screenHeight int, todayDate string) {
 			continue
 		}
 
-		if math.Abs(imgRatio-screenRatio) <= 0.1 {
+		if (illustData.Width >= screenWidth && illustData.Height >= screenHeight) && math.Abs(imgRatio-screenRatio) <= 0.05 {
 			log.Println("匹配成功, 准备下载...")
 
 			if originalImageURL == "" {

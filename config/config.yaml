@@ -1,0 +1,6 @@
+screen:
+    res:
+        width: 1280
+        height: 800
+time:
+    now: "2025-09-29"
